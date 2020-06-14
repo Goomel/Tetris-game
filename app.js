@@ -1,5 +1,6 @@
 const canvas = document.getElementById('tetris');
 const ctx = canvas.getContext("2d");
+let game;
 
 const rows = 20;
 const columns = 10;
@@ -60,47 +61,76 @@ class Piece {
         this.x = 3;
         this.y = -2;
     }
-}
+    fill(color) {
+        for (let c = 0; c < this.activeTetromino.length; c++) {
+            for (let r = 0; r < this.activeTetromino.length; r++) {
+                if (this.activeTetromino[r][c]) {
+                    drawSquare(this.x + c, this.y + r, color);
+                }
+            }
+        }
+        // console.log(this);
+    }
+    draw() {
+        this.fill(this.color);
+        // console.log(this);
+    }
+    undraw() {
+        // console.log(this);
+        this.fill(vacant);
+    }
+    moveDown() {
+        this.collisionDetect(0, 2, this.activeTetromino);
 
-Piece.prototype.fill = (color) => {
-    for (let c = 0; c < p.activeTetromino.length; c++) {
-        for (let r = 0; r < p.activeTetromino.length; r++) {
-            if (p.activeTetromino[r][c]) {
-                drawSquare(p.x + c, p.y + r, color)
+        this.undraw();
+        this.y++;
+        this.draw();
+        // console.log(this.x);
+    }
+    rotate() {
+        // this.collisionDetect();
+        this.undraw();
+        this.currTetromino < 3 ? this.currTetromino++ : this.currTetromino = 0;
+        this.activeTetromino = this.tetromino[this.currTetromino];
+        this.draw();
+    }
+    moveRight() {
+        this.collisionDetect(2, 0, this.activeTetromino);
+        this.undraw();
+        this.x++;
+        this.draw();
+        window.clearInterval(game);
+    }
+    moveLeft() {
+        this.collisionDetect(-2, 0, this.activeTetromino);
+        this.undraw();
+        this.x--;
+        this.draw();
+    }
+    collisionDetect(x, y, piece) {
+        for (let c = 0; c < piece.length; c++) {
+            for (let r = 0; r < piece.length; r++) {
+                //if the square is empty - continue
+                if (!piece[c][r])
+                    continue;
+                //p.x is one less than should be
+                let nextX = this.x + r + x;
+                let nextY = this.y + c + y;
+                // console.log(this);
+                console.log('x ', x, y);
+                console.log('this.x ', this.x, this.y);
+                console.log('next ', nextX, nextY);
+                if (nextX >= columns || nextY >= rows || nextX <= 0) {
+                    console.log("Border!");
+                    return true;
+                }
             }
         }
     }
 }
-Piece.prototype.draw = () => {
-    p.fill(p.color);
-}
-Piece.prototype.undraw = () => {
-    p.fill(vacant);
-}
-Piece.prototype.moveDown = () => {
-    p.undraw();
-    p.y++;
-    p.draw();
-}
-Piece.prototype.rotate = () => {
-    p.undraw();
-    p.currTetromino < 3 ? p.currTetromino++ : p.currTetromino = 0;
-    p.activeTetromino = p.tetromino[p.currTetromino];
-    p.draw();
-}
-Piece.prototype.moveRight = () => {
-    p.undraw();
-    p.x++;
-    p.draw();
-}
-Piece.prototype.moveLeft = () => {
-    p.undraw();
-    p.x--;
-    p.draw();
-}
 
 
-window.addEventListener('keydown', (e) => {
+const controlGame = e => {
     if (e.keyCode == 37) {
         p.moveLeft();
     }
@@ -113,12 +143,14 @@ window.addEventListener('keydown', (e) => {
     else if (e.keyCode == 40) {
         p.moveDown();
     }
-})
+}
 
+window.addEventListener('keydown', e => {
+    controlGame(e);
+})
 const startGame = () => {
     p = randomTetromino();
-    window.setInterval(p.moveDown, 600);
+    game = window.setInterval(() => p.moveDown(), 1000);
 }
 
 startBtn.addEventListener('click', startGame)
-
