@@ -11,12 +11,19 @@ const startBtn = document.getElementById('start-btn');
 let p;
 
 //creating a board and filling by vacant
-let board = [...Array(rows).fill([])];
-board.forEach((arr) => {
-    for (let c = 0; c < columns; c++) {
-        arr[c] = vacant;
+// let board = [...Array(rows).fill([])];
+// board.forEach((arr) => {
+//     for (let c = 0; c < columns; c++) {
+//         arr[c] = vacant;
+//     }
+// })
+let board = [];
+for (r = 0; r < rows; r++) {
+    board[r] = [];
+    for (c = 0; c < columns; c++) {
+        board[r][c] = vacant;
     }
-})
+}
 
 //drawing a board
 let drawSquare = (x, y, color) => {
@@ -62,68 +69,96 @@ class Piece {
         this.y = -2;
     }
     fill(color) {
-        for (let c = 0; c < this.activeTetromino.length; c++) {
-            for (let r = 0; r < this.activeTetromino.length; r++) {
+        for (let r = 0; r < this.activeTetromino.length; r++) {
+            for (let c = 0; c < this.activeTetromino.length; c++) {
                 if (this.activeTetromino[r][c]) {
                     drawSquare(this.x + c, this.y + r, color);
                 }
             }
         }
-        // console.log(this);
     }
     draw() {
         this.fill(this.color);
-        // console.log(this);
     }
     undraw() {
-        // console.log(this);
         this.fill(vacant);
     }
     moveDown() {
-        this.collisionDetect(0, 2, this.activeTetromino);
+        if (!this.collisionDetect(0, 1, this.activeTetromino)) {
+            this.undraw();
+            this.y++;
+            this.draw();
+        } else {
+            this.lock();
 
-        this.undraw();
-        this.y++;
-        this.draw();
-        // console.log(this.x);
+            // p = randomTetromino();
+        }
     }
+
     rotate() {
-        // this.collisionDetect();
-        this.undraw();
-        this.currTetromino < 3 ? this.currTetromino++ : this.currTetromino = 0;
-        this.activeTetromino = this.tetromino[this.currTetromino];
-        this.draw();
+        let nextTetromino = this.tetromino[(this.currTetromino + 1) % this.tetromino.length];
+        if (!this.collisionDetect(0, 0, nextTetromino)) {
+            this.undraw();
+            this.currTetromino < 3 ? this.currTetromino++ : this.currTetromino = 0;
+            this.activeTetromino = this.tetromino[this.currTetromino];
+            this.draw();
+        }
     }
+
     moveRight() {
-        this.collisionDetect(2, 0, this.activeTetromino);
-        this.undraw();
-        this.x++;
-        this.draw();
-        window.clearInterval(game);
+        if (!this.collisionDetect(1, 0, this.activeTetromino)) {
+            this.undraw();
+            this.x++;
+            this.draw();
+        }
     }
+
     moveLeft() {
-        this.collisionDetect(-2, 0, this.activeTetromino);
-        this.undraw();
-        this.x--;
-        this.draw();
+        if (!this.collisionDetect(-1, 0, this.activeTetromino)) {
+            this.undraw();
+            this.x--;
+            this.draw();
+        }
     }
+
     collisionDetect(x, y, piece) {
-        for (let c = 0; c < piece.length; c++) {
-            for (let r = 0; r < piece.length; r++) {
+        for (let r = 0; r < piece.length; r++) {
+            for (let c = 0; c < piece.length; c++) {
                 //if the square is empty - continue
-                if (!piece[c][r])
-                    continue;
-                //p.x is one less than should be
-                let nextX = this.x + r + x;
-                let nextY = this.y + c + y;
-                // console.log(this);
-                console.log('x ', x, y);
-                console.log('this.x ', this.x, this.y);
-                console.log('next ', nextX, nextY);
-                if (nextX >= columns || nextY >= rows || nextX <= 0) {
-                    console.log("Border!");
+                if (!piece[r][c]) continue;
+
+                let nextX = this.x + c + x;
+                let nextY = this.y + r + y;
+                if (nextY < 0) continue;
+                if (nextX >= columns || nextY >= rows || nextX < 0) {
                     return true;
                 }
+                // if (board[nextX][nextY] != vacant) {
+                //     console.log('Other piece!');
+                //     return true;
+                // }
+            }
+        }
+    }
+
+    lock() {
+        for (let r = 0; r < this.activeTetromino.length; r++) {
+            for (let c = 0; c < this.activeTetromino.length; c++) {
+                if (!this.activeTetromino[r][c]) {
+                    continue;
+                }
+                // pieces to lock on top = game over
+                if (this.y + r < 0) {
+                    alert("Game Over");
+                    // stop request animation frame
+                    // gameOver = true;
+                    break;
+                }
+                //lock the piece
+                console.log("Y: ", this.y, " X: ", this.x);
+                console.log("r: " + r, " c: " + c);
+                board[this.y + r][this.x + c] = this.color;
+                console.log(board);
             }
         }
     }
@@ -150,7 +185,7 @@ window.addEventListener('keydown', e => {
 })
 const startGame = () => {
     p = randomTetromino();
-    game = window.setInterval(() => p.moveDown(), 1000);
+    game = window.setInterval(() => p.moveDown(), 800);
 }
 
 startBtn.addEventListener('click', startGame)
