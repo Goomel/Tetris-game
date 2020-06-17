@@ -7,16 +7,13 @@ const columns = 10;
 const sq = 20; //square size (20px x 20px)
 const vacant = "white"; //color of empty square
 const startBtn = document.getElementById('start-btn');
+let nextX;
+let nextY;
 //it will be Piece class object
 let p;
 
-//creating a board and filling by vacant
-// let board = [...Array(rows).fill([])];
-// board.forEach((arr) => {
-//     for (let c = 0; c < columns; c++) {
-//         arr[c] = vacant;
-//     }
-// })
+
+
 let board = [];
 for (r = 0; r < rows; r++) {
     board[r] = [];
@@ -36,7 +33,7 @@ let drawSquare = (x, y, color) => {
 let drawBoard = () => {
     for (let c = 0; c < columns; c++) {
         for (let r = 0; r < rows; r++) {
-            drawSquare(c, r, vacant)
+            drawSquare(c, r, board[r][c])
         }
     }
 }
@@ -53,12 +50,14 @@ const pieces = [
     [J, "orange"]
 ];
 
+//random number of tetromino from tetrominoes.js file
 const randomTetromino = () => {
     let random = Math.round((Math.random() * pieces.length));
     //p variable become an instance of Piece class 
     return new Piece(pieces[random][0], pieces[random][1]);
 }
 
+//main class - every tetromino
 class Piece {
     constructor(tetromino, color) {
         this.tetromino = tetromino;
@@ -90,11 +89,11 @@ class Piece {
             this.draw();
         } else {
             this.lock();
-
-            // p = randomTetromino();
+            p = randomTetromino();
         }
     }
 
+    // TODO: Check out this - method probably doesn't work correct when piece == O
     rotate() {
         let nextTetromino = this.tetromino[(this.currTetromino + 1) % this.tetromino.length];
         if (!this.collisionDetect(0, 0, nextTetromino)) {
@@ -127,16 +126,16 @@ class Piece {
                 //if the square is empty - continue
                 if (!piece[r][c]) continue;
 
-                let nextX = this.x + c + x;
-                let nextY = this.y + r + y;
+                nextX = this.x + c + x;
+                nextY = this.y + r + y;
                 if (nextY < 0) continue;
                 if (nextX >= columns || nextY >= rows || nextX < 0) {
                     return true;
                 }
-                // if (board[nextX][nextY] != vacant) {
-                //     console.log('Other piece!');
-                //     return true;
-                // }
+                if (board[nextY][nextX] != vacant) {
+                    this.lock();
+                    return true;
+                }
             }
         }
     }
@@ -155,17 +154,37 @@ class Piece {
                     break;
                 }
                 //lock the piece
-                console.log("Y: ", this.y, " X: ", this.x);
-                console.log("r: " + r, " c: " + c);
                 board[this.y + r][this.x + c] = this.color;
-                console.log(board);
+                // this.removeLine();
             }
         }
+        // this.removeLine();
+
+        // TODO: it doesn't work rightly
+        let lineFilled = false;
+        for (let r = 0; r < rows; r++) {
+            if (board[r].every((element) => element != vacant)) {
+                lineFilled = true;
+            }
+        }
+        if (lineFilled) {
+            console.log('Filled');
+            board.splice(r, 1);
+            let newLane = new Array(10).fill("white")
+            board.unshift(newLane);
+            drawBoard();
+        }
+        else {
+            return;
+        }
     }
+    // removeLine() {
+
+    // }
 }
 
 
-const controlGame = e => {
+const controlGame = (e) => {
     if (e.keyCode == 37) {
         p.moveLeft();
     }
@@ -185,7 +204,7 @@ window.addEventListener('keydown', e => {
 })
 const startGame = () => {
     p = randomTetromino();
-    game = window.setInterval(() => p.moveDown(), 800);
+    game = window.setInterval(() => p.moveDown(), 700);
 }
 
 startBtn.addEventListener('click', startGame)
