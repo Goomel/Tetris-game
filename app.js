@@ -52,7 +52,7 @@ const pieces = [
 
 //random number of tetromino from tetrominoes.js file
 const randomTetromino = () => {
-    let random = Math.round((Math.random() * pieces.length));
+    let random = Math.floor((Math.random() * pieces.length));
     //p variable become an instance of Piece class 
     return new Piece(pieces[random][0], pieces[random][1]);
 }
@@ -93,10 +93,14 @@ class Piece {
         }
     }
 
-    // TODO: Check out this - method probably doesn't work correct when piece == O
     rotate() {
         let nextTetromino = this.tetromino[(this.currTetromino + 1) % this.tetromino.length];
-        if (!this.collisionDetect(0, 0, nextTetromino)) {
+
+        if (!this.collisionDetect(0, 0, nextTetromino) && this.activeTetromino == O[0]) {
+            this.undraw();
+            this.draw();
+        }
+        else if (!this.collisionDetect(0, 0, nextTetromino) && this.activeTetromino != O[0]) {
             this.undraw();
             this.currTetromino < 3 ? this.currTetromino++ : this.currTetromino = 0;
             this.activeTetromino = this.tetromino[this.currTetromino];
@@ -148,39 +152,35 @@ class Piece {
                 }
                 // pieces to lock on top = game over
                 if (this.y + r < 0) {
-                    alert("Game Over");
+                    // alert("Game Over");
+                    console.log("Game over");
                     // stop request animation frame
                     // gameOver = true;
                     break;
                 }
                 //lock the piece
                 board[this.y + r][this.x + c] = this.color;
-                // this.removeLine();
+                console.log(board);
             }
         }
-        // this.removeLine();
 
         // TODO: it doesn't work rightly
         let lineFilled = false;
         for (let r = 0; r < rows; r++) {
             if (board[r].every((element) => element != vacant)) {
-                lineFilled = true;
+                board.splice(r, 1);
+                let newLine = new Array(10).fill("white")
+                board.unshift(newLine);
+                drawBoard();
+
+                console.log(true, r);
+            }
+
+            else {
+                continue;
             }
         }
-        if (lineFilled) {
-            console.log('Filled');
-            board.splice(r, 1);
-            let newLane = new Array(10).fill("white")
-            board.unshift(newLane);
-            drawBoard();
-        }
-        else {
-            return;
-        }
     }
-    // removeLine() {
-
-    // }
 }
 
 
@@ -206,5 +206,9 @@ const startGame = () => {
     p = randomTetromino();
     game = window.setInterval(() => p.moveDown(), 700);
 }
-
+const stopGame = () => {
+    window.clearInterval(game);
+}
+const stopBtn = document.getElementById('stop-btn');
 startBtn.addEventListener('click', startGame)
+stopBtn.addEventListener('click', stopGame);
