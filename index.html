@@ -5,12 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tetris - game</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <canvas id="tetris" width="200" height="400"></canvas>
-    <button id="start-btn">Start game</button>
-    <button id="stop-btn">S T O P</button>
+    <div class="game">
+        <canvas id="tetris" width="200" height="400"></canvas>
+        <div class="control-panel">
+            <p>Score: <span id="score">0</span></p>
+            <p>Lines: <span id="lines">0</span></p>
+            <button id="start-btn">Start game</button>
+            <!-- <button id="stop-btn">S T O P</button> -->
+
+
+        </div>
+    </div>
+
     <script src="tetrominoes.js"></script>
     <script src="app.js"></script>
 </body>

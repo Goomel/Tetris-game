@@ -1,20 +1,23 @@
 const canvas = document.getElementById('tetris');
 const ctx = canvas.getContext("2d");
+const scoreElement = document.getElementById('score');
+const linesElement = document.getElementById('lines');
+const startBtn = document.getElementById('start-btn');
+
 let game;
+let gameOver = false;
 
 const rows = 20;
 const columns = 10;
 const sq = 20; //square size (20px x 20px)
 const vacant = "white"; //color of empty square
-const startBtn = document.getElementById('start-btn');
+let score = 0;
+let lines = 0;
 let nextX;
 let nextY;
-//it will be Piece class object
-let p;
-
-
-
+let p; //it will be Piece object
 let board = [];
+
 for (r = 0; r < rows; r++) {
     board[r] = [];
     for (c = 0; c < columns; c++) {
@@ -137,11 +140,11 @@ class Piece {
                     return true;
                 }
                 if (board[nextY][nextX] != vacant) {
-                    this.lock();
                     return true;
                 }
             }
         }
+        return false;
     }
 
     lock() {
@@ -152,49 +155,47 @@ class Piece {
                 }
                 // pieces to lock on top = game over
                 if (this.y + r < 0) {
-                    // alert("Game Over");
                     console.log("Game over");
                     // stop request animation frame
-                    // gameOver = true;
+                    gameOver = true;
                     break;
                 }
                 //lock the piece
+                score++;
                 board[this.y + r][this.x + c] = this.color;
-                console.log(board);
             }
         }
-
-        // TODO: it doesn't work rightly
-        let lineFilled = false;
         for (let r = 0; r < rows; r++) {
-            if (board[r].every((element) => element != vacant)) {
+            if (board[r].every((element) => element !== vacant)) {
                 board.splice(r, 1);
                 let newLine = new Array(10).fill("white")
                 board.unshift(newLine);
                 drawBoard();
-
-                console.log(true, r);
+                score += 20;
+                lines++;
             }
-
             else {
                 continue;
             }
         }
+        scoreElement.textContent = score;
+        linesElement.textContent = lines;
     }
+
 }
 
 
 const controlGame = (e) => {
-    if (e.keyCode == 37) {
+    if (e.keyCode == 37 || e.keyCode == 65) {
         p.moveLeft();
     }
-    else if (e.keyCode == 38) {
+    else if (e.keyCode == 38 || e.keyCode == 87) {
         p.rotate();
     }
-    else if (e.keyCode == 39) {
+    else if (e.keyCode == 39 || e.keyCode == 68) {
         p.moveRight();
     }
-    else if (e.keyCode == 40) {
+    else if (e.keyCode == 40 || e.keyCode == 83) {
         p.moveDown();
     }
 }
@@ -204,11 +205,9 @@ window.addEventListener('keydown', e => {
 })
 const startGame = () => {
     p = randomTetromino();
-    game = window.setInterval(() => p.moveDown(), 700);
+    game = window.setInterval(() => p.moveDown(), 600);
 }
 const stopGame = () => {
     window.clearInterval(game);
 }
-const stopBtn = document.getElementById('stop-btn');
 startBtn.addEventListener('click', startGame)
-stopBtn.addEventListener('click', stopGame);
