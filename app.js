@@ -1,42 +1,52 @@
 const canvas = document.getElementById('tetris');
-const ctx = canvas.getContext("2d");
+const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
 const linesElement = document.getElementById('lines');
 const startBtn = document.getElementById('start-btn');
+const nextTetrominoElement = document.getElementById('nextTetromino');
 
 let game;
 let gameOver = false;
 
-const rows = 20;
-const columns = 10;
-const sq = 20; //square size (20px x 20px)
-const vacant = "white"; //color of empty square
+const sizes = {
+    rows: 20,
+    columns: 10,
+    width: 200,
+    height: 400,
+    sq: 20 //square size (20px x 20px)
+}
+const vacant = '#1D1C1B'; //color of empty square
+const strokeColor = 'black';
+const finishColor = 'rgba(112,169,161,0.6)';
 let score = 0;
 let lines = 0;
 let nextX;
 let nextY;
 let p; //it will be Piece object
 let board = [];
+let nextTetromino;
 
-for (r = 0; r < rows; r++) {
+
+for (r = 0; r < sizes.rows; r++) {
     board[r] = [];
-    for (c = 0; c < columns; c++) {
+    for (c = 0; c < sizes.columns; c++) {
         board[r][c] = vacant;
     }
 }
 
 //drawing a board
 let drawSquare = (x, y, color) => {
+    ctx.clearRect(x * sizes.sq, y * sizes.sq, sizes.sq, sizes.sq)
     ctx.fillStyle = color;
-    ctx.fillRect(x * sq, y * sq, sq, sq);
-    ctx.strokeStyle = 'black';
-    ctx.strokeRect(x * sq, y * sq, sq, sq)
+    ctx.fillRect(x * sizes.sq, y * sizes.sq, sizes.sq, sizes.sq);
+    ctx.strokeStyle = strokeColor;
+    ctx.strokeRect(x * sizes.sq, y * sizes.sq, sizes.sq, sizes.sq)
 }
 
-let drawBoard = () => {
-    for (let c = 0; c < columns; c++) {
-        for (let r = 0; r < rows; r++) {
-            drawSquare(c, r, board[r][c])
+let drawBoard = (color) => {
+    for (let c = 0; c < sizes.columns; c++) {
+        for (let r = 0; r < sizes.rows; r++) {
+            drawSquare(c, r, (color ? color : board[r][c]))
         }
     }
 }
@@ -44,13 +54,13 @@ drawBoard();
 
 //colors of pieces
 const pieces = [
-    [Z, "red"],
-    [S, "green"],
-    [T, "yellow"],
-    [O, "blue"],
-    [L, "purple"],
-    [I, "cyan"],
-    [J, "orange"]
+    [Z, "#F90408"],
+    [S, "#DF5206"],
+    [T, "#DD7B03"],
+    [O, "#FBB30A"],
+    [L, "#6DCB25"],
+    [I, "#28B258"],
+    [J, "#01BAEF"]
 ];
 
 //random number of tetromino from tetrominoes.js file
@@ -59,6 +69,18 @@ const randomTetromino = () => {
     //p variable become an instance of Piece class 
     return new Piece(pieces[random][0], pieces[random][1]);
 }
+const drawNextTetromino = () => {
+    //clear the board
+    [...nextTetrominoElement.children].forEach(block => block.style.backgroundColor = vacant)
+    //draw new tetromino
+    nextTetromino.activeTetromino.forEach((row, index) => {
+        row.forEach((element, id) => {
+            if (element) nextTetrominoElement.children[id + index * 4].style.backgroundColor = nextTetromino.color;
+            console.log(element);
+        })
+    })
+}
+
 
 //main class - every tetromino
 class Piece {
@@ -92,7 +114,9 @@ class Piece {
             this.draw();
         } else {
             this.lock();
-            p = randomTetromino();
+            p = nextTetromino;
+            nextTetromino = randomTetromino();
+            drawNextTetromino();
         }
     }
 
@@ -136,7 +160,7 @@ class Piece {
                 nextX = this.x + c + x;
                 nextY = this.y + r + y;
                 if (nextY < 0) continue;
-                if (nextX >= columns || nextY >= rows || nextX < 0) {
+                if (nextX >= sizes.columns || nextY >= sizes.rows || nextX < 0) {
                     return true;
                 }
                 if (board[nextY][nextX] != vacant) {
@@ -154,21 +178,29 @@ class Piece {
                     continue;
                 }
                 // pieces to lock on top = game over
-                if (this.y + r < 0) {
+                if (this.y + r <= 1) {
                     console.log("Game over");
                     // stop request animation frame
                     gameOver = true;
+                    window.clearInterval(game);
+                    ctx.fillStyle = finishColor;
+                    ctx.fillRect(sizes.sq, sizes.sq, 0.8 * sizes.width, 0.9 * sizes.height);
+                    ctx.font = 'normal 30px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#FBFBFF';
+                    ctx.fillText(`Score${score ? ':' + score : ''}`, sizes.width / 2, sizes.height / 2);
                     break;
                 }
                 //lock the piece
                 score++;
                 board[this.y + r][this.x + c] = this.color;
+
             }
         }
-        for (let r = 0; r < rows; r++) {
+        for (let r = 0; r < sizes.rows; r++) {
             if (board[r].every((element) => element !== vacant)) {
                 board.splice(r, 1);
-                let newLine = new Array(10).fill("white")
+                let newLine = new Array(10).fill(vacant)
                 board.unshift(newLine);
                 drawBoard();
                 score += 20;
@@ -184,19 +216,20 @@ class Piece {
 
 }
 
-
 const controlGame = (e) => {
-    if (e.keyCode == 37 || e.keyCode == 65) {
-        p.moveLeft();
-    }
-    else if (e.keyCode == 38 || e.keyCode == 87) {
-        p.rotate();
-    }
-    else if (e.keyCode == 39 || e.keyCode == 68) {
-        p.moveRight();
-    }
-    else if (e.keyCode == 40 || e.keyCode == 83) {
-        p.moveDown();
+    if (!gameOver) {
+        if (e.keyCode == 37 || e.keyCode == 65) {
+            p.moveLeft();
+        }
+        else if (e.keyCode == 38 || e.keyCode == 87) {
+            p.rotate();
+        }
+        else if (e.keyCode == 39 || e.keyCode == 68) {
+            p.moveRight();
+        }
+        else if (e.keyCode == 40 || e.keyCode == 83) {
+            p.moveDown();
+        }
     }
 }
 
@@ -204,10 +237,21 @@ window.addEventListener('keydown', e => {
     controlGame(e);
 })
 const startGame = () => {
-    p = randomTetromino();
-    game = window.setInterval(() => p.moveDown(), 600);
-}
-const stopGame = () => {
+    gameOver = false;
+    score = 0;
+    lines = 0;
+    scoreElement.textContent = score;
+    linesElement.textContent = lines;
     window.clearInterval(game);
+    for (r = 0; r < sizes.rows; r++) {
+        for (c = 0; c < sizes.columns; c++) {
+            board[r][c] = vacant;
+        }
+    }
+    drawBoard(vacant);
+    p = randomTetromino();
+    nextTetromino = randomTetromino();
+    game = window.setInterval(() => p.moveDown(), 600);
+    drawNextTetromino();
 }
 startBtn.addEventListener('click', startGame)
