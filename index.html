@@ -5,12 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tetris - game</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Roboto:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style/style.css">
 </head>
 
 <body>
+    <p class="heading">
+        <span>T</span>
+        <span>e</span>
+        <span>t</span>
+        <span>r</span>
+        <span>i</span>
+        <span>s</span>
+    </p>
     <div class="game">
-        <canvas id="tetris" width="200" height="400"></canvas>
+        <canvas id="tetris" class="tetris" width="200" height="400"></canvas>
         <div class="control-panel">
             <p>Next tetromino:</p>
             <div class="nextTetromino" id="nextTetromino">
@@ -34,12 +44,16 @@
             <button id="start-btn">Start game</button>
             <p>Score: <strong id="score">0</strong></p>
             <p>Lines: <strong id="lines">0</strong></p>
-            <!-- <button id="stop-btn">S T O P</button> -->
+            <div class="controls">
+                <p>Controls:</p>
+                <img class="keys-wasd" src="images/keys-wasd.png" alt="WASD">
+                <p>and keys arrow</p>
+            </div>
         </div>
     </div>
 
-    <script src="tetrominoes.js"></script>
-    <script src="app.js"></script>
+    <script src="js/tetrominoes.js"></script>
+    <script src="js/app.js"></script>
 </body>
 
 </html>

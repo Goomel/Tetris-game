@@ -1,3 +1,4 @@
+//DOM elements
 const canvas = document.getElementById('tetris');
 const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
@@ -16,17 +17,17 @@ const sizes = {
     sq: 20 //square size (20px x 20px)
 }
 const vacant = '#1D1C1B'; //color of empty square
-const strokeColor = 'black';
-const finishColor = 'rgba(112,169,161,0.6)';
+const strokeColor = 'black'; //border of every square
+const finishColor = 'rgba(251, 179, 10,0.9)'; //color of score background
 let score = 0;
 let lines = 0;
 let nextX;
 let nextY;
-let p; //it will be Piece object
+let p; //Piece object
 let board = [];
 let nextTetromino;
 
-
+//populate board by vacant 
 for (r = 0; r < sizes.rows; r++) {
     board[r] = [];
     for (c = 0; c < sizes.columns; c++) {
@@ -34,7 +35,6 @@ for (r = 0; r < sizes.rows; r++) {
     }
 }
 
-//drawing a board
 let drawSquare = (x, y, color) => {
     ctx.clearRect(x * sizes.sq, y * sizes.sq, sizes.sq, sizes.sq)
     ctx.fillStyle = color;
@@ -55,10 +55,10 @@ drawBoard();
 //colors of pieces
 const pieces = [
     [Z, "#F90408"],
-    [S, "#DF5206"],
+    [S, "#3BD80D"],
     [T, "#DD7B03"],
     [O, "#FBB30A"],
-    [L, "#6DCB25"],
+    [L, "#A46ECC"],
     [I, "#28B258"],
     [J, "#01BAEF"]
 ];
@@ -70,19 +70,17 @@ const randomTetromino = () => {
     return new Piece(pieces[random][0], pieces[random][1]);
 }
 const drawNextTetromino = () => {
-    //clear the board
+    //clear the next tetromino board
     [...nextTetrominoElement.children].forEach(block => block.style.backgroundColor = vacant)
     //draw new tetromino
     nextTetromino.activeTetromino.forEach((row, index) => {
         row.forEach((element, id) => {
             if (element) nextTetrominoElement.children[id + index * 4].style.backgroundColor = nextTetromino.color;
-            console.log(element);
         })
     })
 }
 
-
-//main class - every tetromino
+//main class - every single tetromino
 class Piece {
     constructor(tetromino, color) {
         this.tetromino = tetromino;
@@ -136,6 +134,7 @@ class Piece {
     }
 
     moveRight() {
+        if (this.y < 0 && (this.x + this.tetromino[0].length + 1 > sizes.columns)) return;
         if (!this.collisionDetect(1, 0, this.activeTetromino)) {
             this.undraw();
             this.x++;
@@ -144,6 +143,7 @@ class Piece {
     }
 
     moveLeft() {
+        if (this.y < 0 && (this.x - 1 < 0)) return;
         if (!this.collisionDetect(-1, 0, this.activeTetromino)) {
             this.undraw();
             this.x--;
@@ -179,7 +179,6 @@ class Piece {
                 }
                 // pieces to lock on top = game over
                 if (this.y + r <= 1) {
-                    console.log("Game over");
                     // stop request animation frame
                     gameOver = true;
                     window.clearInterval(game);
@@ -187,9 +186,9 @@ class Piece {
                     ctx.fillRect(sizes.sq, sizes.sq, 0.8 * sizes.width, 0.9 * sizes.height);
                     ctx.font = 'normal 30px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillStyle = '#FBFBFF';
+                    ctx.fillStyle = '#1D1C1B';
                     ctx.fillText(`Score${score ? ':' + score : ''}`, sizes.width / 2, sizes.height / 2);
-                    break;
+                    return;
                 }
                 //lock the piece
                 score++;
@@ -197,6 +196,7 @@ class Piece {
 
             }
         }
+        //remove filled line
         for (let r = 0; r < sizes.rows; r++) {
             if (board[r].every((element) => element !== vacant)) {
                 board.splice(r, 1);
