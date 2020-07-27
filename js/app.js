@@ -9,13 +9,25 @@ const nextTetrominoElement = document.getElementById('nextTetromino');
 let game;
 let gameOver = false;
 
-const sizes = {
+
+let sizes = {
     rows: 20,
     columns: 10,
-    width: 200,
-    height: 400,
-    sq: 20 //square size (20px x 20px)
+    width: window.innerWidth > 992 ? 300 : 200,
+    height: window.innerWidth > 992 ? 600 : 400,
+    sq: window.innerWidth > 992 ? 30 : 20 //square size (20px x 20px)
 }
+canvas.width = sizes.width;
+canvas.height = sizes.height;
+window.addEventListener('resize', () => {
+    const windowWidth = window.innerWidth;
+    sizes.width = windowWidth > 992 ? 300 : 200;
+    sizes.height = windowWidth > 992 ? 600 : 400;
+    sizes.sq = windowWidth > 992 ? 30 : 20;
+    canvas.width = sizes.width;
+    canvas.height = sizes.height;
+    drawBoard();
+})
 const vacant = '#1D1C1B'; //color of empty square
 const strokeColor = 'black'; //border of every square
 const finishColor = 'rgba(251, 179, 10,0.9)'; //color of score background
